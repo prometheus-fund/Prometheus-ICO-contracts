@@ -37,6 +37,29 @@ contract PrometheusICO is ReturnableICO {
 		
 	}
 	
+	function EndICO() public {
+		require(msg.sender == owner);
+		
+		uint256 contract_balance = token.balanceOf(address(this));
+		
+		require( (endTime < now) || (contract_balance == 0) );
+		
+		if (tokensSold >= softCap) {
+			if (address(this).balance > 0) {
+				owner.transfer(address(this).balance);
+			}
+			
+			if (contract_balance > 0) {
+				token.BurnTokensFrom(address(this));
+			}
+			
+			token.UnlockTokens();
+		}
+		else {
+			returnPeriodEndTime = now + returnPeriodDuration;
+		}
+	}
+	
 	
 	function withdraw() public {
 	
