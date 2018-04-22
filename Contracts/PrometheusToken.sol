@@ -25,7 +25,7 @@ pragma solidity ^0.4.21;
 import "github.com/JustFixMe/Prometheus-ICO-contracts/Contracts/PrometheusICO.sol";
 
 
-contract PrometheusToken is Owned, ERC20Token {
+contract PrometheusToken is ERC20Token, Owned {
 	
 	address public preICOContract;
 	
@@ -33,24 +33,32 @@ contract PrometheusToken is Owned, ERC20Token {
 	
 	bool internal isLocked;
 	
-	event TokenUnlocked(string message);
+	event TokenUnlock(string message);
 	
 	
 	function PrometheusToken(
-		string _name,
-		string _symbol,
-		uint8 _decimals,
-		address _preICOContract,
-		uint256 _preICOEmmision,
-		address _ICOContract,
-		uint256 _ICOEmmision
-	) Owned() ERC20Token(_name, _symbol, _decimals, (_preICOEmmision + _ICOEmmision)) public {
-		isLocked		=	true;		
-		preICOContract	=	_preICOContract;
-		ICOContract		=	_ICOContract
+		string			_name,
+		string			_symbol,
+		uint8			_decimals
+	) ERC20Token(_name, _symbol, _decimals, 0) Owned(msg.sender) public {
+		isLocked		=	true;
+	}
+	
+	
+	function SetICOContracts(
+		address			_preICOContract,
+		uint256			_preICOEmmision,
+		address			_ICOContract,
+		uint256			_ICOEmmision
+	) public {
+		require(msg.sender == owner);
 		
-		balanceOf[_preICOContract] = _preICOEmmision * ( 10 ** uint256(_decimals) );
-		balanceOf[_ICOContract] = _ICOEmmision * ( 10 ** uint256(_decimals) );
+		require( (preICOContract == 0x0) && (ICOContract == 0x0) );
+		
+		balanceOf[_preICOContract]	= _preICOEmmision;
+		balanceOf[_ICOContract]		= _ICOEmmision;
+		
+		totalSupply = (_preICOEmmision + _ICOEmmision) * (10 ** uint256(decimals));
 	}
 	
 	
@@ -68,9 +76,9 @@ contract PrometheusToken is Owned, ERC20Token {
 	
 	//
 	function transferFrom(
-		address _from,
-		address _to,
-		uint256 _value
+		address		_from,
+		address		_to,
+		uint256		_value
 	) public {
 		
 		require(!isLocked);
@@ -94,11 +102,11 @@ contract PrometheusToken is Owned, ERC20Token {
 	
 	//
 	function approve(
-		address _to,
-		uint256 _value
+		address		_to,
+		uint256		_value
 	) public {
 		
-		require(!isLocked)
+		require(!isLocked);
 		
         require(_to != 0x0);
 		
@@ -112,8 +120,8 @@ contract PrometheusToken is Owned, ERC20Token {
 	
 	//
 	function ForceTransfer(
-		address _to,
-		uint256 _value
+		address		_to,
+		uint256		_value
 	) external {
 		
 		require( (msg.sender == preICOContract) || (msg.sender == ICOContract) );
@@ -130,7 +138,7 @@ contract PrometheusToken is Owned, ERC20Token {
 		
 		isLocked = false;
 		
-		emit TokenUnlocked("Tokens have been unlocked. Transfer and approve functions are now available.");
+		emit TokenUnlock("Tokens have been unlocked. Transfer and approve functions are now available.");
 	}
 	
 	

@@ -22,121 +22,35 @@
 
 pragma solidity ^0.4.21;
 
-import "github.com/JustFixMe/Prometheus-ICO-contracts/Contracts/PrometheusPreICO.sol";
+import "github.com/JustFixMe/Prometheus-ICO-contracts/Contracts/BasicDefs.sol";
 
 
-contract PrometheusICO is OracliszedETHUSD {
-	
-	IPrometheusToken public token;
-	
-	uint public startTime;
-	
-	uint public endTime;
-	
-	uint256 internal softCap;
-	
-	uint256 internal tokensSold;
-	
-	mapping (address => uint256) internal spendWei;
-	
-	bool internal canReturn;
-	
+contract PrometheusICO is ReturnableICO {
 	
 	function PrometheusICO(
-		IPrometheusToken	_token,
+		address             _token,
 		uint				_precision,
 		uint				_priceInUSD,
-		uint256				_softCap
-	) OracliszedETHUSD(_precision, _priceInUSD) public payable {
-		token		=	_token;
-		softCap		=	_softCap * (10 ** uint256(_token.decimals()));
+		uint256				_softCap,
+		uint				_returnPeriodDuration
+	) ReturnableICO(msg.sender, _token, _precision, _priceInUSD, _softCap, _returnPeriodDuration) public payable {
 		
-		canReturn	=	false;
 	}
 	
 	
-	function EndICO() public {
+	function withdraw() public {
+	
 		require(msg.sender == owner);
 		
-		uint256 contract_balance = token.balanceOf(address(this));
-		
-		require( (endTime < now) || (contract_balance == 0) );
-		
-		if (tokensSold >= softCap) {
-			if (address(this).balance > 0) {
-				owner.transfer(address(this).balance);
-			}
-			
-			if (contract_balance > 0) {
-				token.ForceTransfer(ICOContract, contract_balance);
-			}
+		if (returnPeriodEndTime == 0) {
+			require( (tokensSold >= softCap) && (now > endTime) );
 		}
 		else {
-			canReturn = true;
-		}
-	}
-	
-	
-	function returnTokens() public {
-		require(canReturn);
-		
-		require(spendWei[msg.sender] > 0);
-		
-		this.transfer(msg.sender, spendWei[msg.sender]);
-		
-		spendWei[msg.sender] = 0;
-		
-		token.BurnTokens(msg.sender);
-	}
-	
-	
-	function _buy(
-		address _buyer,
-		uint256 _value
-	) internal returns(uint256) {
-		require( (now > startTime) && (now < endTime));
-		
-		uint256 contract_balance = token.balanceOf(this);
-		
-		require(contract_balance > 0);
-		
-		uint256 ammount = ( _value * (10 ** uint256(token.decimals())) ) / priceInWei;
-		
-		require(ammount > 0);
-		
-		if (ammount > contract_balance) {
-			uint256 diff = (ammount - contract_balance) * priceInWei / (10 ** uint256(token.decimals()));
-			
-			require(diff < _value);
-			
-			ammount = contract_balance;
-			
-			_buyer.transfer(diff);
+			require(now > returnPeriodEndTime);
 		}
 		
-		token.ForceTransfer(_buyer, ammount);
+		owner.transfer(this.balance);
 		
-		buyedTokens[_buyer] = buyedTokens[_buyer] + ammount;
-		tokensSold = tokensSold + ammount;
-		
-		emit TokenPurchase(_buyer, ammount);
-		
-		return ammount;
 	}
-	
-	
-	function () public payable {
-		_buy(msg.sender, msg.value);
-	}
-	
-	
-	function buy() public payable returns(uint256) {
-		uint256 ammount = _buy(msg.sender, msg.value);
-		
-		return ammount;
-	}
-	
-	
-	
 	
 }
