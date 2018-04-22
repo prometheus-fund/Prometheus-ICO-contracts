@@ -53,13 +53,15 @@ contract PrometheusToken is ERC20Token, Owned {
 	) public {
 		require(msg.sender == owner);
 		
+		require( (_preICOContract != 0x0) && (_ICOContract != 0x0) );
+		
 		require( (preICOContract == 0x0) && (ICOContract == 0x0) );
 		
 		preICOContract	= _preICOContract;
 		ICOContract		= _ICOContract;
 		
-		balanceOf[_preICOContract]	= _preICOEmmision;
-		balanceOf[_ICOContract]		= _ICOEmmision;
+		balanceOf[_preICOContract]	= _preICOEmmision * (10 ** uint256(decimals));
+		balanceOf[_ICOContract]		= _ICOEmmision * (10 ** uint256(decimals));
 		
 		totalSupply = (_preICOEmmision + _ICOEmmision) * (10 ** uint256(decimals));
 	}
