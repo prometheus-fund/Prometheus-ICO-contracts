@@ -22,7 +22,7 @@
 
 pragma solidity ^0.4.21;
 
-import "github.com/JustFixMe/Prometheus-ICO-contracts/Contracts/PrometheusICO.sol";
+import "github.com/JustFixMe/Prometheus-ICO-contracts/Contracts/BasicDefs.sol";
 
 
 contract PrometheusToken is ERC20Token, Owned {
@@ -54,6 +54,9 @@ contract PrometheusToken is ERC20Token, Owned {
 		require(msg.sender == owner);
 		
 		require( (preICOContract == 0x0) && (ICOContract == 0x0) );
+		
+		preICOContract	= _preICOContract;
+		ICOContract		= _ICOContract;
 		
 		balanceOf[_preICOContract]	= _preICOEmmision;
 		balanceOf[_ICOContract]		= _ICOEmmision;
