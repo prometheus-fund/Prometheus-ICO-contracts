@@ -116,6 +116,7 @@ contract ERC20Token {
 		uint256 _value
 	) public {
 		
+		require(_to != _from);
         require(allowance[_from][_to] > 0);
         
         if (allowance[_from][_to] < _value) {
@@ -139,7 +140,7 @@ contract ERC20Token {
 	) public {
 		
         require(_to != 0x0);
-		
+		require(_to != msg.sender);
 		require(_value <= totalSupply);
         
 		allowance[msg.sender][_to] = _value;
@@ -244,7 +245,7 @@ contract ReturnableICO is Owned {
 	}
 	
 	
-	function _bonus(uint256 _value) internal returns(uint256) {
+	function _bonus(uint256 _value) internal view returns(uint256) {
 		uint256 bonus_modif = _value / (1000000 * (10 ** uint256(token.decimals())));
 		
 		if (bonus_modif > 0) {
@@ -264,6 +265,20 @@ contract ReturnableICO is Owned {
 	}
 	
 	
+	function _tokensToBuy(uint256 _value) internal view returns(uint256) {
+		return (_value * (10 ** uint256(token.decimals()))) / (priceInUSD * oracul.unitPrice());
+	}
+	
+	
+	function tokensForFinney(uint256 _finney) public view returns(uint256) {
+		uint256 ammount = _tokensToBuy(_finney * 1 finney);
+		
+		uint256 bonus = _bonus(ammount);
+		
+		return (ammount + bonus);
+	}
+	
+	
 	function _buy(
 		address _buyer,
 		uint256 _value
@@ -274,16 +289,19 @@ contract ReturnableICO is Owned {
 		
 		require(contract_balance > 0);
 		
-		uint256 ammount = (_value * (10 ** uint256(token.decimals()))) / (priceInUSD * oracul.unitPrice());
+		uint256 ammount = _tokensToBuy(_value);
 		
 		require(ammount > 0);
 		
 		uint256 bonus = 0;
+		uint256 spend_wei = _value;
 		
 		if (ammount > contract_balance) {
 			uint256 diff = ((ammount - contract_balance) * priceInUSD * oracul.unitPrice()) / (10 ** uint256(token.decimals()));
 			
 			require(diff < _value);
+			
+			spend_wei = spend_wei - diff;
 			
 			ammount = contract_balance;
 			
@@ -299,7 +317,7 @@ contract ReturnableICO is Owned {
 		
 		token.ForceTransfer(_buyer, ammount + bonus);
 		
-		spendWei[_buyer] = spendWei[_buyer] + _value;
+		spendWei[_buyer] = spendWei[_buyer] + spend_wei;
 		tokensSold = tokensSold + ammount;
 		
 		emit TokenPurchase(_buyer, ammount, bonus);

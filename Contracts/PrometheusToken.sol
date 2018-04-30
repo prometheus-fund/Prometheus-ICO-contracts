@@ -88,6 +88,7 @@ contract PrometheusToken is ERC20Token, Owned {
 		
 		require(!isLocked);
 		
+		require(_to != _from);
         require(allowance[_from][_to] > 0);
         
         if (allowance[_from][_to] < _value) {
@@ -113,8 +114,8 @@ contract PrometheusToken is ERC20Token, Owned {
 		
 		require(!isLocked);
 		
+		require(_to != msg.sender);
         require(_to != 0x0);
-		
 		require(_value <= totalSupply);
         
 		allowance[msg.sender][_to] = _value;
