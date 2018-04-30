@@ -22,8 +22,6 @@
 
 pragma solidity ^0.4.21;
 
-import "github.com/oraclize/ethereum-api/oraclizeAPI.sol";
-
 
 interface IPrometheusToken {
 	function decimals() external view returns(uint8);
@@ -35,6 +33,10 @@ interface IPrometheusToken {
 	function BurnTokensFrom(address) external;
 }
 
+interface IPrometheusOracul {
+	function unitPrice() external view returns(uint256);
+	function currentETHUSD() external view returns(uint);
+}
 
 contract Owned {
 	address internal owner;
@@ -43,7 +45,6 @@ contract Owned {
 		owner = _owner;
 	}
 }
-
 
 contract ERC20Token {
 	//Full name of token
@@ -149,95 +150,44 @@ contract ERC20Token {
 }
 
 
-contract OracliszedETHUSD is Owned, usingOraclize {
-	uint256 internal priceInWei;
+contract ReturnableICO is Owned {
+	IPrometheusToken public token;
+	
+	IPrometheusOracul public oracul;
 	
 	uint public priceInUSD;
-	
-	uint public precision;
-	
-	uint public currentETHUSD;
-	
-	uint public lastUpdateTime;
-	
-	event ETHUSDRateUpdate(uint NewETHUSDRate);
-	
-	
-	function OracliszedETHUSD(
-		address _owner,
-		uint _precision,
-		uint _priceInUSD
-	) Owned(_owner) public payable {
-		
-		precision = _precision;
-		
-		priceInUSD = _priceInUSD;
-		
-		UpdatePrice();
-	}
-	
-	
-	function UpdatePrice() public payable {
-		
-	    require(msg.sender == owner);
-	    
-        if (oraclize_getPrice("URL") > address(this).balance) {
-			revert();
-		}
-		else {
-			oraclize_query("URL", "json(https://api.kraken.com/0/public/Ticker?pair=ETHUSD).result.XETHZUSD.c.0");
-		}
-    }
-	
-	
-	function __callback(bytes32 myid, string result) public {
-		
-		if (msg.sender != oraclize_cbAddress()) {
-			revert();
-		}
-		
-		currentETHUSD = parseInt(result, precision);
-		
-		priceInWei = ( 1 ether * uint256(priceInUSD) ) / uint256(currentETHUSD);
-		
-		lastUpdateTime = now;
-		
-		emit ETHUSDRateUpdate(currentETHUSD);
-	}
-	
-}
-
-
-contract ReturnableICO is OracliszedETHUSD {
-	IPrometheusToken public token;
 	
 	uint public startTime;
 	
 	uint public endTime;
 	
-	uint256 internal softCap;
+	uint256 public softCap;
 	
-	uint256 internal tokensSold;
+	uint256 public tokensSold;
 	
 	mapping (address => uint256) internal spendWei;
 	
-	uint internal returnPeriodEndTime;
+	uint public returnPeriodEndTime;
 	
 	uint public returnPeriodDuration;
 	
-	event TokenPurchase(address indexed buyer, uint256 ammount);
+	event TokenPurchase(address indexed buyer, uint256 ammount, uint256 bonus);
 	
 	
 	function ReturnableICO(
 		address				_owner,
 		address             _token,
-		uint				_precision,
+		address             _oracul,
 		uint				_priceInUSD,
 		uint256				_softCap,
 		uint				_returnPeriodDuration
-	) OracliszedETHUSD(_owner, _precision, _priceInUSD) public payable {
+	) Owned(_owner) public payable {
 		token		=	IPrometheusToken(_token);
+		oracul		=	_oracul;
+		
 		softCap		=	_softCap * (10 ** uint256(token.decimals()));
+		
+		priceInUSD	=	_priceInUSD;
 		
 		returnPeriodDuration = _returnPeriodDuration * 1 minutes;
 	}
@@ -294,6 +244,26 @@ contract ReturnableICO is OracliszedETHUSD {
 	}
 	
 	
+	function _bonus(uint256 _value) internal returns(uint256) {
+		uint256 bonus_modif = _value / (1000000 * (10 ** uint256(token.decimals())));
+		
+		if (bonus_modif > 0) {
+			if (bonus_modif >= 10) {
+				return (_value * 15) / 100;
+			}
+			else if (bonus_modif > 5) {
+				return (_value * 10) / 100;
+			}
+			else {
+				return (_value * (5 + bonus_modif)) / 100;
+			}
+		}
+		else {
+			return 0;
+		}
+	}
+	
+	
 	function _buy(
 		address _buyer,
 		uint256 _value
@@ -304,12 +274,14 @@ contract ReturnableICO is OracliszedETHUSD {
 		
 		require(contract_balance > 0);
 		
-		uint256 ammount = ( _value * (10 ** uint256(token.decimals())) ) / priceInWei;
+		uint256 ammount = (_value * (10 ** uint256(token.decimals()))) / (priceInUSD * oracul.unitPrice());
 		
 		require(ammount > 0);
 		
+		uint256 bonus = 0;
+		
 		if (ammount > contract_balance) {
-			uint256 diff = (ammount - contract_balance) * priceInWei / (10 ** uint256(token.decimals()));
+			uint256 diff = ((ammount - contract_balance) * priceInUSD * oracul.unitPrice()) / (10 ** uint256(token.decimals()));
 			
 			require(diff < _value);
 			
@@ -317,13 +289,20 @@ contract ReturnableICO is OracliszedETHUSD {
 			
 			_buyer.transfer(diff);
 		}
+		else {
+			bonus = _bonus(ammount);
+			
+			if (ammount + bonus > contract_balance) {
+				bonus = bonus - (contract_balance - (ammount + bonus));
+			}
+		}
 		
-		token.ForceTransfer(_buyer, ammount);
+		token.ForceTransfer(_buyer, ammount + bonus);
 		
 		spendWei[_buyer] = spendWei[_buyer] + _value;
 		tokensSold = tokensSold + ammount;
 		
-		emit TokenPurchase(_buyer, ammount);
+		emit TokenPurchase(_buyer, ammount, bonus);
 		
 		return ammount;
 	}
@@ -341,4 +320,9 @@ contract ReturnableICO is OracliszedETHUSD {
 	}
 	
 	
+	function buyFor(address _recipient) public payable {
+		_buy(_recipient, msg.value);
+	}
+	
 }
+

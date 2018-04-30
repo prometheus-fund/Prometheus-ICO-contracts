@@ -32,11 +32,11 @@ contract PrometheusPreICO is ReturnableICO {
 	function PrometheusPreICO(
 		address             _token,
 		address				_ICOContract,
-		uint				_precision,
+		address				_oracul,
 		uint				_priceInUSD,
 		uint256				_softCap,
 		uint				_returnPeriodDuration
-	) ReturnableICO(msg.sender, _token, _precision, _priceInUSD, _softCap, _returnPeriodDuration) public payable {
+	) ReturnableICO(msg.sender, _token, _oracul, _priceInUSD, _softCap, _returnPeriodDuration) public payable {
 		ICOContract = _ICOContract;
 	}
 	
