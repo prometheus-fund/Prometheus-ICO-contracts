@@ -59,7 +59,7 @@ contract PrometheusPreICO is ReturnableICO {
 		}
 		else {
 			returnPeriodEndTime = now + returnPeriodDuration;
-			token.BurnTokensFrom(_ICOContract);
+			token.BurnTokensFrom(ICOContract);
 		}
 	}
 	
