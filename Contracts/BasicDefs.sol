@@ -184,7 +184,7 @@ contract ReturnableICO is Owned {
 		uint				_returnPeriodDuration
 	) Owned(_owner) public payable {
 		token		=	IPrometheusToken(_token);
-		oracul		=	_oracul;
+		oracul		=	IPrometheusOracul(_oracul);
 		
 		softCap		=	_softCap * (10 ** uint256(token.decimals()));
 		
