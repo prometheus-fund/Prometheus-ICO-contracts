@@ -166,6 +166,10 @@ contract ReturnableICO is Owned {
 	
 	uint256 public tokensSold;
 	
+	uint256 public bonusValue;
+	
+	uint8 public bonusPercentageOffset;
+	
 	mapping (address => uint256) internal spendWei;
 	
 	uint public returnPeriodEndTime;
@@ -181,6 +185,8 @@ contract ReturnableICO is Owned {
 		address             _oracul,
 		uint				_priceInUSD,
 		uint256				_softCap,
+		uint256				_bonusValue,
+		uint8				_bonusPercentageOffset,
 		uint				_returnPeriodDuration
 	) Owned(_owner) public payable {
 		token		=	IPrometheusToken(_token);
@@ -189,6 +195,10 @@ contract ReturnableICO is Owned {
 		softCap		=	_softCap * (10 ** uint256(token.decimals()));
 		
 		priceInUSD	=	_priceInUSD;
+		
+		bonusValue	=	_bonusValue * (10 ** uint256(token.decimals()));
+		
+		bonusPercentageOffset = _bonusPercentageOffset;
 		
 		returnPeriodDuration = _returnPeriodDuration * 1 minutes;
 	}
@@ -246,17 +256,17 @@ contract ReturnableICO is Owned {
 	
 	
 	function _bonus(uint256 _value) internal view returns(uint256) {
-		uint256 bonus_modif = _value / (1000000 * (10 ** uint256(token.decimals())));
+		uint256 bonus_modif = _value / bonusValue;
 		
 		if (bonus_modif > 0) {
 			if (bonus_modif >= 10) {
-				return (_value * 15) / 100;
+				return (_value * (10 + bonusPercentageOffset)) / 100;
 			}
 			else if (bonus_modif > 5) {
-				return (_value * 10) / 100;
+				return (_value * (5 + bonusPercentageOffset)) / 100;
 			}
 			else {
-				return (_value * (5 + bonus_modif)) / 100;
+				return (_value * (bonus_modif + bonusPercentageOffset)) / 100;
 			}
 		}
 		else {

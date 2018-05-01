@@ -35,8 +35,10 @@ contract PrometheusPreICO is ReturnableICO {
 		address				_oracul,
 		uint				_priceInUSD,
 		uint256				_softCap,
+		uint256				_bonusValue,
+		uint8				_bonusPercentageOffset,
 		uint				_returnPeriodDuration
-	) ReturnableICO(msg.sender, _token, _oracul, _priceInUSD, _softCap, _returnPeriodDuration) public payable {
+	) ReturnableICO(msg.sender, _token, _oracul, _priceInUSD, _softCap, _bonusValue, _bonusPercentageOffset, _returnPeriodDuration) public payable {
 		ICOContract = _ICOContract;
 	}
 	

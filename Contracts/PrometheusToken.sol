@@ -34,7 +34,7 @@ contract PrometheusToken is ERC20Token, Owned {
 	bool internal isLocked;
 	
 	event TokenUnlock(string message);
-	
+	event TokensBurnt(address indexed from, uint256 ammount);
 	
 	function PrometheusToken(
 		string			_name,
@@ -155,6 +155,9 @@ contract PrometheusToken is ERC20Token, Owned {
 		require(balanceOf[_from] > 0);
 		
 		totalSupply = totalSupply - balanceOf[_from];
+		
+		emit TokensBurnt(_from, balanceOf[_from]);
+		
 		balanceOf[_from] = 0;
 	}
 	
