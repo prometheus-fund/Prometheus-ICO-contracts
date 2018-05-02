@@ -35,7 +35,7 @@ contract PrometheusICO is ReturnableICO {
 		uint256				_bonusValue,
 		uint8				_bonusPercentageOffset,
 		uint				_returnPeriodDuration
-	) ReturnableICO(msg.sender, _token, _oracul, _priceInUSD, _softCap, _bonusValue, _bonusPercentageOffset, _returnPeriodDuration) public payable {
+	) ReturnableICO(msg.sender, _token, _oracul, _priceInUSD, _softCap, _bonusValue, _bonusPercentageOffset, _returnPeriodDuration) public {
 		
 	}
 	
@@ -45,6 +45,10 @@ contract PrometheusICO is ReturnableICO {
 		uint256 contract_balance = token.balanceOf(address(this));
 		
 		require( (endTime < now) || (contract_balance == 0) );
+		
+		if (endTime > now) {
+			endTime = now;
+		}
 		
 		if (tokensSold >= softCap) {
 			if (address(this).balance > 0) {
@@ -56,9 +60,13 @@ contract PrometheusICO is ReturnableICO {
 			}
 			
 			token.UnlockTokens();
+			
+			emit StausUpdate("ICO has been ended with success. Soft cap was reached.");
 		}
 		else {
 			returnPeriodEndTime = now + returnPeriodDuration;
+			
+			emit StausUpdate("ICO has been ended with failure. Soft cap was not reached. Tokens can be returned.");
 		}
 	}
 	

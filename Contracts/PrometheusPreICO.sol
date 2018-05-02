@@ -38,7 +38,7 @@ contract PrometheusPreICO is ReturnableICO {
 		uint256				_bonusValue,
 		uint8				_bonusPercentageOffset,
 		uint				_returnPeriodDuration
-	) ReturnableICO(msg.sender, _token, _oracul, _priceInUSD, _softCap, _bonusValue, _bonusPercentageOffset, _returnPeriodDuration) public payable {
+	) ReturnableICO(msg.sender, _token, _oracul, _priceInUSD, _softCap, _bonusValue, _bonusPercentageOffset, _returnPeriodDuration) public {
 		ICOContract = _ICOContract;
 	}
 	
@@ -50,6 +50,10 @@ contract PrometheusPreICO is ReturnableICO {
 		
 		require( (endTime < now) || (contract_balance == 0) );
 		
+		if (endTime > now) {
+			endTime = now;
+		}
+		
 		if (tokensSold >= softCap) {
 			if (address(this).balance > 0) {
 				owner.transfer(address(this).balance);
@@ -58,10 +62,14 @@ contract PrometheusPreICO is ReturnableICO {
 			if (contract_balance > 0) {
 				token.ForceTransfer(ICOContract, contract_balance);
 			}
+			
+			emit StausUpdate("Pre-ICO has been ended with success. Soft cap was reached.");
 		}
 		else {
 			returnPeriodEndTime = now + returnPeriodDuration;
 			token.BurnTokensFrom(ICOContract);
+			
+			emit StausUpdate("Pre-ICO has been ended with failure. Soft cap was not reached. Tokens can be returned.");
 		}
 	}
 	

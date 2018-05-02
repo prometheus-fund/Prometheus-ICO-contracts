@@ -97,8 +97,6 @@ contract ERC20Token {
         emit Transfer(_from, _to, _value);
     }
 	
-	
-	
 	//
 	function transfer(
 		address _to,
@@ -107,7 +105,6 @@ contract ERC20Token {
 		
         _transfer(msg.sender, _to, _value);
     }
-	
 	
 	//
 	function transferFrom(
@@ -176,7 +173,9 @@ contract ReturnableICO is Owned {
 	
 	uint public returnPeriodDuration;
 	
-	event TokenPurchase(address indexed buyer, uint256 ammount, uint256 bonus);
+	event StausUpdate(string message);
+	
+	event TokensPurchase(address indexed buyer, uint256 ammount, uint256 bonus);
 	
 	
 	function ReturnableICO(
@@ -188,7 +187,7 @@ contract ReturnableICO is Owned {
 		uint256				_bonusValue,
 		uint8				_bonusPercentageOffset,
 		uint				_returnPeriodDuration
-	) Owned(_owner) public payable {
+	) Owned(_owner) public {
 		token		=	IPrometheusToken(_token);
 		oracul		=	IPrometheusOracul(_oracul);
 		
@@ -217,6 +216,8 @@ contract ReturnableICO is Owned {
 		startTime = now + (_delay * 1 minutes);
 		
 		endTime = startTime + ( _duration * 1 minutes);
+		
+		emit StausUpdate("ICO will start after delay");
 	}
 	
 	
@@ -227,6 +228,10 @@ contract ReturnableICO is Owned {
 		
 		require( (endTime < now) || (contract_balance == 0) );
 		
+		if (endTime > now) {
+			endTime = now;
+		}
+		
 		if (tokensSold >= softCap) {
 			if (address(this).balance > 0) {
 				owner.transfer(address(this).balance);
@@ -235,9 +240,13 @@ contract ReturnableICO is Owned {
 			if (contract_balance > 0) {
 				token.BurnTokensFrom(address(this));
 			}
+			
+			emit StausUpdate("ICO has been ended with success. Soft cap was reached.");
 		}
 		else {
 			returnPeriodEndTime = now + returnPeriodDuration;
+			
+			emit StausUpdate("ICO has been ended with failure. Soft cap was not reached. Tokens can be returned.");
 		}
 	}
 	
@@ -258,7 +267,7 @@ contract ReturnableICO is Owned {
 	function _bonus(uint256 _value) internal view returns(uint256) {
 		uint256 bonus_modif = _value / bonusValue;
 		
-		if (bonus_modif > 0) {
+		if (bonus_modif > 1) {
 			if (bonus_modif >= 10) {
 				return (_value * (10 + bonusPercentageOffset)) / 100;
 			}
@@ -266,7 +275,7 @@ contract ReturnableICO is Owned {
 				return (_value * (5 + bonusPercentageOffset)) / 100;
 			}
 			else {
-				return (_value * (bonus_modif + bonusPercentageOffset)) / 100;
+				return (_value * (bonus_modif + bonusPercentageOffset - 1)) / 100;
 			}
 		}
 		else {
@@ -330,7 +339,7 @@ contract ReturnableICO is Owned {
 		spendWei[_buyer] = spendWei[_buyer] + spend_wei;
 		tokensSold = tokensSold + ammount;
 		
-		emit TokenPurchase(_buyer, ammount, bonus);
+		emit TokensPurchase(_buyer, ammount, bonus);
 		
 		return ammount;
 	}
