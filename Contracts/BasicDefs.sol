@@ -267,7 +267,7 @@ contract ReturnableICO is Owned {
 	function _bonus(uint256 _value) internal view returns(uint256) {
 		uint256 bonus_modif = _value / bonusValue;
 		
-		if (bonus_modif > 1) {
+		if (bonus_modif > 0) {
 			if (bonus_modif >= 10) {
 				return (_value * (10 + bonusPercentageOffset)) / 100;
 			}
