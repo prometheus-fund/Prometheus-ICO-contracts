@@ -1,6 +1,6 @@
 //MIT License
 //
-//Copyright (c) 2018 Anatolii Eremin
+//Copyright (c) 2018 Anatolii Eremin, 2019 PROMETHEUS-FOUNDATION
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
 //OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //SOFTWARE.
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.5.11;
 
 
 interface IPrometheusToken {
@@ -39,9 +39,9 @@ interface IPrometheusOracul {
 }
 
 contract Owned {
-	address internal owner;
+	address payable internal owner;
 	
-	function Owned(address _owner) public {
+	constructor(address payable _owner) public {
 		owner = _owner;
 	}
 }
@@ -65,9 +65,9 @@ contract ERC20Token {
 	event Approval( address indexed owner, address indexed spender, uint256 value );
 	
 	
-	function ERC20Token(
-		string _name,
-		string _symbol,
+	constructor(
+		string memory _name,
+		string memory _symbol,
 		uint8 _decimals,
 		uint256 _totalSupply
 	) public {		
@@ -84,7 +84,7 @@ contract ERC20Token {
 		uint256 _value
 	) internal {
         
-        require(_to != 0x0);
+        require(_to != address(0x0));
         
         require(_value > 0);
         
@@ -136,7 +136,7 @@ contract ERC20Token {
 		uint256 _value
 	) public {
 		
-        require(_to != 0x0);
+        require(_to != address(0x0));
 		require(_to != msg.sender);
 		require(_value <= totalSupply);
         
@@ -178,8 +178,8 @@ contract ReturnableICO is Owned {
 	event TokensPurchase(address indexed buyer, uint256 ammount, uint256 bonus);
 	
 	
-	function ReturnableICO(
-		address				_owner,
+	constructor(
+		address payable		_owner,
 		address             _token,
 		address             _oracul,
 		uint				_priceInUSD,
@@ -299,7 +299,7 @@ contract ReturnableICO is Owned {
 	
 	
 	function _buy(
-		address _buyer,
+		address payable _buyer,
 		uint256 _value
 	) internal returns(uint256) {
 		require( (now > startTime) && (now < endTime));
@@ -345,7 +345,7 @@ contract ReturnableICO is Owned {
 	}
 	
 	
-	function () public payable {
+	function () external payable {
 		_buy(msg.sender, msg.value);
 	}
 	
@@ -357,7 +357,7 @@ contract ReturnableICO is Owned {
 	}
 	
 	
-	function buyFor(address _recipient) public payable {
+	function buyFor(address payable _recipient) public payable {
 		_buy(_recipient, msg.value);
 	}
 	

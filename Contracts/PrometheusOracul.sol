@@ -1,6 +1,6 @@
 //MIT License
 //
-//Copyright (c) 2018 Anatolii Eremin
+//Copyright (c) 2018 Anatolii Eremin, 2019 PROMETHEUS-FOUNDATION
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
 //OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //SOFTWARE.
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.5.11;
 
 import "github.com/oraclize/ethereum-api/oraclizeAPI.sol";
 
@@ -43,7 +43,7 @@ contract PrometheusOracul is usingOraclize {
 	event ETHUSDRateUpdate(uint NewExchangeRate);
 	
 	
-	function PrometheusOracul( uint8 _usdDecimals ) public payable {
+	constructor( uint8 _usdDecimals ) public payable {
 		owner = msg.sender;
 		
 		isQueryStarted = false;
@@ -52,6 +52,15 @@ contract PrometheusOracul is usingOraclize {
 		usdDecimals = _usdDecimals;
 		
 		UpdatePrice();
+	}
+	
+	
+	function ReturnFunds() public{
+	    require(msg.sender == owner);
+	    require(isQueryStarted == false);
+	    require(address(this).balance > 0);
+	    
+	    msg.sender.transfer(address(this).balance);
 	}
 	
 	
@@ -101,7 +110,7 @@ contract PrometheusOracul is usingOraclize {
 	}
 	
 	
-	function __callback(bytes32 myid, string result) public {
+	function __callback(bytes32 myid, string memory result) public {
 		
 		require (msg.sender == oraclize_cbAddress());
 		
