@@ -1,6 +1,6 @@
 //MIT License
 //
-//Copyright (c) 2018 Anatolii Eremin
+//Copyright (c) 2018 Anatolii Eremin, 2019 PROMETHEUS-FOUNDATION
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,9 @@
 //OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //SOFTWARE.
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.5.11;
 
-import "github.com/JustFixMe/Prometheus-ICO-contracts/Contracts/BasicDefs.sol";
+import "github.com/prometheus-fund/Prometheus-ICO-contracts/blob/master/Contracts/BasicDefs.sol";
 
 
 contract PrometheusToken is ERC20Token, Owned {
@@ -36,9 +36,9 @@ contract PrometheusToken is ERC20Token, Owned {
 	event TokenUnlock(string message);
 	event TokensBurnt(address indexed from, uint256 ammount);
 	
-	function PrometheusToken(
-		string			_name,
-		string			_symbol,
+	constructor(
+		string memory	_name,
+		string memory	_symbol,
 		uint8			_decimals
 	) ERC20Token(_name, _symbol, _decimals, 0) Owned(msg.sender) public {
 		isLocked		=	true;
@@ -53,9 +53,9 @@ contract PrometheusToken is ERC20Token, Owned {
 	) public {
 		require(msg.sender == owner);
 		
-		require( (_preICOContract != 0x0) && (_ICOContract != 0x0) );
+		require( (_preICOContract != address(0x0)) && (_ICOContract != address(0x0)) );
 		
-		require( (preICOContract == 0x0) && (ICOContract == 0x0) );
+		require( (preICOContract == address(0x0)) && (ICOContract == address(0x0)) );
 		
 		preICOContract	= _preICOContract;
 		ICOContract		= _ICOContract;
@@ -115,7 +115,7 @@ contract PrometheusToken is ERC20Token, Owned {
 		require(!isLocked);
 		
 		require(_to != msg.sender);
-        require(_to != 0x0);
+        require(_to != address(0x0));
 		require(_value <= totalSupply);
         
 		allowance[msg.sender][_to] = _value;

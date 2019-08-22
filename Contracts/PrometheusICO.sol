@@ -1,6 +1,6 @@
 //MIT License
 //
-//Copyright (c) 2018 Anatolii Eremin
+//Copyright (c) 2018 Anatolii Eremin, 2019 PROMETHEUS-FOUNDATION
 //
 //Permission is hereby granted, free of charge, to any person obtaining a copy
 //of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,14 @@
 //OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //SOFTWARE.
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.5.11;
 
-import "github.com/JustFixMe/Prometheus-ICO-contracts/Contracts/BasicDefs.sol";
+import "github.com/prometheus-fund/Prometheus-ICO-contracts/Contracts/BasicDefs.sol";
 
 
 contract PrometheusICO is ReturnableICO {
 	
-	function PrometheusICO(
+	constructor(
 		address             _token,
 		address				_oracul,
 		uint				_priceInUSD,
@@ -82,7 +82,7 @@ contract PrometheusICO is ReturnableICO {
 			require(now > returnPeriodEndTime);
 		}
 		
-		owner.transfer(this.balance);
+		owner.transfer(address(this).balance);
 		
 	}
 	
