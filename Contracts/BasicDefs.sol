@@ -184,8 +184,6 @@ contract ReturnableICO is Owned {
 		address             _oracul,
 		uint				_priceInUSD,
 		uint256				_softCap,
-		uint256				_bonusValue,
-		uint8				_bonusPercentageOffset,
 		uint				_returnPeriodDuration
 	) Owned(_owner) public {
 		token		=	IPrometheusToken(_token);
@@ -194,10 +192,6 @@ contract ReturnableICO is Owned {
 		softCap		=	_softCap * (10 ** uint256(token.decimals()));
 		
 		priceInUSD	=	_priceInUSD;
-		
-		bonusValue	=	_bonusValue * (10 ** uint256(token.decimals()));
-		
-		bonusPercentageOffset = _bonusPercentageOffset;
 		
 		returnPeriodDuration = _returnPeriodDuration * 1 minutes;
 	}
@@ -265,21 +259,30 @@ contract ReturnableICO is Owned {
 	
 	
 	function _bonus(uint256 _value) internal view returns(uint256) {
-		uint256 bonus_modif = _value / bonusValue;
+		uint256 tokens = _value / (10 ** uint256(token.decimals()));
 		
-		if (bonus_modif > 0) {
-			if (bonus_modif >= 10) {
-				return (_value * (10 + bonusPercentageOffset)) / 100;
-			}
-			else if (bonus_modif > 5) {
-				return (_value * (5 + bonusPercentageOffset)) / 100;
-			}
-			else {
-				return (_value * (bonus_modif + bonusPercentageOffset - 1)) / 100;
-			}
-		}
-		else {
-			return 0;
+		if (tokens >= 500000){
+		    if (tokens < 1000000){
+		        return (_value * 103) / 100;
+		    }
+		    else if (tokens < 2000000){
+		        return (_value * 105) / 100;
+		    }
+		    else if (tokens < 3000000){
+		        return (_value * 107) / 100;
+		    }
+		    else if (tokens < 4000000){
+		        return (_value * 108) / 100;
+		    }
+		    else if (tokens < 5000000){
+		        return (_value * 110) / 100;
+		    }
+		    else if (tokens < 10000000){
+		        return (_value * 115) / 100;
+		    }
+		    else{
+		        return 0;
+		    }
 		}
 	}
 	
