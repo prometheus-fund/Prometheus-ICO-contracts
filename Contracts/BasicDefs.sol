@@ -163,10 +163,6 @@ contract ReturnableICO is Owned {
 	
 	uint256 public tokensSold;
 	
-	uint256 public bonusValue;
-	
-	uint8 public bonusPercentageOffset;
-	
 	mapping (address => uint256) internal spendWei;
 	
 	uint public returnPeriodEndTime;
