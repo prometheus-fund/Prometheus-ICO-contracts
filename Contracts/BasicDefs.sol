@@ -259,22 +259,22 @@ contract ReturnableICO is Owned {
 		
 		if (tokens >= 500000){
 		    if (tokens < 1000000){
-		        return (_value * 103) / 100;
+		        return (_value * 3) / 100;
 		    }
 		    else if (tokens < 2000000){
-		        return (_value * 105) / 100;
+		        return (_value * 5) / 100;
 		    }
 		    else if (tokens < 3000000){
-		        return (_value * 107) / 100;
+		        return (_value * 7) / 100;
 		    }
 		    else if (tokens < 4000000){
-		        return (_value * 108) / 100;
+		        return (_value * 8) / 100;
 		    }
 		    else if (tokens < 5000000){
-		        return (_value * 110) / 100;
+		        return (_value * 10) / 100;
 		    }
 		    else if (tokens < 10000000){
-		        return (_value * 115) / 100;
+		        return (_value * 15) / 100;
 		    }
 		    else{
 		        return 0;
